@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poem & Joke Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-box p {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .error {
+            background: #fee;
+            border-left-color: #e53e3e;
+            color: #c53030;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .webhook-config {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .webhook-config h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .webhook-config input {
+            margin-top: 5px;
+        }
+
+        .webhook-config small {
+            color: #856404;
+            display: block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Poem & Joke Generator</h1>
+        <p class="subtitle">Enter any topic and get an AI-generated poem and joke!</p>
+
+        <div class="webhook-config">
+            <h4>⚙️ Webhook Configuration</h4>
+            <label for="webhookUrl">Webhook URL:</label>
+            <input type="text" id="webhookUrl" placeholder="https://thestarrconspiracy.app.n8n.cloud/webhook/...">
+            <small>Get this from your n8n Webhook node after activating the workflow</small>
+        </div>
+
+        <form id="topicForm">
+            <div class="input-group">
+                <label for="topic">Enter Your Topic:</label>
+                <input 
+                    type="text" 
+                    id="topic" 
+                    name="topic" 
+                    placeholder="e.g., AI and the future of creativity" 
+                    required
+                    autocomplete="off"
+                >
+            </div>
+            <button type="submit" id="submitBtn">🚀 Generate Poem & Joke</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your poem and joke...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-box" id="poemBox">
+                <h3>📝 Your Poem</h3>
+                <p id="poemText"></p>
+            </div>
+            <div class="result-box" id="jokeBox">
+                <h3>😄 Your Joke</h3>
+                <p id="jokeText"></p>
+            </div>
+        </div>
+
+        <div class="results" id="errorBox" style="display: none;">
+            <div class="result-box error">
+                <h3>❌ Error</h3>
+                <p id="errorText"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('topicForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorBox = document.getElementById('errorBox');
+        const webhookUrlInput = document.getElementById('webhookUrl');
+
+        // Load saved webhook URL from localStorage
+        const savedWebhookUrl = localStorage.getItem('webhookUrl');
+        if (savedWebhookUrl) {
+            webhookUrlInput.value = savedWebhookUrl;
+        }
+
+        // Save webhook URL on change
+        webhookUrlInput.addEventListener('change', (e) => {
+            localStorage.setItem('webhookUrl', e.target.value);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const topic = document.getElementById('topic').value;
+            const webhookUrl = webhookUrlInput.value.trim();
+
+            if (!webhookUrl) {
+                showError('Please enter your webhook URL first!');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            loading.classList.add('active');
+            results.classList.remove('active');
+            errorBox.style.display = 'none';
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ topic: topic })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('poemText').textContent = data.poem;
+                    document.getElementById('jokeText').textContent = data.joke;
+                    results.classList.add('active');
+                } else {
+                    showError('Failed to generate content. Please try again.');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Error: ${error.message}. Make sure the webhook URL is correct and the workflow is activated.`);
+            } finally {
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            errorBox.style.display = 'block';
+            setTimeout(() => {
+                errorBox.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
