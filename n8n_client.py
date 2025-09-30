@@ -51,6 +51,8 @@ class N8nClient:
             headers=self.headers,
             json=workflow_data
         )
+        if response.status_code >= 400:
+            print(f"Error Response: {response.text}")
         response.raise_for_status()
         return response.json()
     

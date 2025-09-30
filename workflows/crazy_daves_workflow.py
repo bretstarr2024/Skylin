@@ -18,99 +18,43 @@ def create_crazy_daves_workflow():
     Create Crazy Dave's workflow in n8n.
     
     This workflow demonstrates:
-    1. Webhook trigger to receive data
-    2. Processing the data
-    3. Storing results in Airtable
+    1. Manual trigger to start
+    2. Processing data with Crazy Dave's special logic
+    3. Output results
     """
     
     # Initialize n8n client
     n8n = N8nClient()
     
-    # Define the workflow structure
+    # Define a simple workflow structure that matches n8n's format
     workflow_data = {
         "name": "Crazy Dave's Workflow",
-        "active": False,
         "nodes": [
             {
-                "parameters": {
-                    "httpMethod": "POST",
-                    "path": "crazy-dave-webhook",
-                    "responseMode": "responseNode",
-                    "options": {}
-                },
-                "name": "Webhook",
-                "type": "n8n-nodes-base.webhook",
+                "parameters": {},
+                "type": "n8n-nodes-base.manualTrigger",
                 "typeVersion": 1,
-                "position": [250, 300],
-                "webhookId": ""
+                "position": [240, 300],
+                "id": "crazy-dave-trigger-001",
+                "name": "When clicking 'Execute workflow'"
             },
             {
                 "parameters": {
-                    "functionCode": "// Process the incoming data\nconst incomingData = items[0].json;\n\n// Crazy Dave's special processing\nconst processedData = {\n  ...incomingData,\n  processedBy: 'Crazy Dave',\n  processedAt: new Date().toISOString(),\n  crazyFactor: Math.random() * 100,\n  message: `Crazy Dave says: This is ${incomingData.title || 'awesome'}!`\n};\n\nreturn [{\n  json: processedData\n}];"
+                    "jsCode": "// ====================================\n// 🎨 CRAZY DAVE'S SPECIAL PROCESSING 🎨\n// ====================================\n\n// Generate some crazy data\nconst crazyIdeas = [\n  'Build a rocket ship',\n  'Teach AI to dance',\n  'Create a time machine',\n  'Invent flying pizza',\n  'Make robots laugh'\n];\n\nconst crazyColors = ['purple', 'neon green', 'electric blue', 'hot pink', 'golden'];\n\nfunction getCrazyness() {\n  return Math.floor(Math.random() * 100) + 1;\n}\n\n// Crazy Dave's output\nconst output = {\n  processedBy: 'Crazy Dave',\n  timestamp: new Date().toISOString(),\n  crazynessLevel: getCrazyness(),\n  idea: crazyIdeas[Math.floor(Math.random() * crazyIdeas.length)],\n  color: crazyColors[Math.floor(Math.random() * crazyColors.length)],\n  message: 'Crazy Dave says: Let\\'s make something AWESOME! 🚀',\n  enthusiasm: '🎉'.repeat(Math.floor(Math.random() * 5) + 1)\n};\n\nreturn [{ json: output }];"
                 },
-                "name": "Process Data",
-                "type": "n8n-nodes-base.function",
-                "typeVersion": 1,
-                "position": [450, 300]
-            },
-            {
-                "parameters": {
-                    "operation": "append",
-                    "application": "{{ $env.AIRTABLE_BASE_ID }}",
-                    "table": "Workflows",
-                    "options": {}
-                },
-                "name": "Save to Airtable",
-                "type": "n8n-nodes-base.airtable",
-                "typeVersion": 1,
-                "position": [650, 300],
-                "credentials": {
-                    "airtableApi": {
-                        "id": "1",
-                        "name": "Airtable API"
-                    }
-                }
-            },
-            {
-                "parameters": {
-                    "respondWith": "json",
-                    "responseBody": "={{ $json }}",
-                    "options": {}
-                },
-                "name": "Respond to Webhook",
-                "type": "n8n-nodes-base.respondToWebhook",
-                "typeVersion": 1,
-                "position": [850, 300]
+                "type": "n8n-nodes-base.code",
+                "typeVersion": 2,
+                "position": [460, 300],
+                "id": "crazy-dave-processor-001",
+                "name": "Crazy Dave's Processor"
             }
         ],
         "connections": {
-            "Webhook": {
+            "When clicking 'Execute workflow'": {
                 "main": [
                     [
                         {
-                            "node": "Process Data",
-                            "type": "main",
-                            "index": 0
-                        }
-                    ]
-                ]
-            },
-            "Process Data": {
-                "main": [
-                    [
-                        {
-                            "node": "Save to Airtable",
-                            "type": "main",
-                            "index": 0
-                        }
-                    ]
-                ]
-            },
-            "Save to Airtable": {
-                "main": [
-                    [
-                        {
-                            "node": "Respond to Webhook",
+                            "node": "Crazy Dave's Processor",
                             "type": "main",
                             "index": 0
                         }
@@ -118,12 +62,7 @@ def create_crazy_daves_workflow():
                 ]
             }
         },
-        "settings": {
-            "saveDataErrorExecution": "all",
-            "saveDataSuccessExecution": "all",
-            "saveManualExecutions": True,
-            "callerPolicy": "workflowsFromSameOwner"
-        }
+        "settings": {}
     }
     
     try:
