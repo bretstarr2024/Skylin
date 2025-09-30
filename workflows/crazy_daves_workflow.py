@@ -47,6 +47,28 @@ def create_crazy_daves_workflow():
                 "position": [460, 300],
                 "id": "crazy-dave-processor-001",
                 "name": "Crazy Dave's Processor"
+            },
+            {
+                "parameters": {
+                    "modelId": {
+                        "__rl": True,
+                        "value": "gpt-4o",
+                        "mode": "list"
+                    },
+                    "messages": {
+                        "values": [
+                            {
+                                "content": "=Analyze this crazy data and give me insights:\n\n{{ JSON.stringify($json, null, 2) }}\n\nProvide a fun commentary on Crazy Dave's output!"
+                            }
+                        ]
+                    },
+                    "options": {}
+                },
+                "type": "@n8n/n8n-nodes-langchain.openAi",
+                "typeVersion": 1.8,
+                "position": [680, 300],
+                "id": "crazy-dave-ai-001",
+                "name": "Analyze with AI"
             }
         ],
         "connections": {
@@ -55,6 +77,17 @@ def create_crazy_daves_workflow():
                     [
                         {
                             "node": "Crazy Dave's Processor",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Crazy Dave's Processor": {
+                "main": [
+                    [
+                        {
+                            "node": "Analyze with AI",
                             "type": "main",
                             "index": 0
                         }
@@ -80,10 +113,9 @@ def create_crazy_daves_workflow():
         print(f"   Nodes: {len(result.get('nodes', []))}")
         
         print("\n🎯 Workflow Components:")
-        print("   1. 🪝 Webhook - Receives incoming data")
-        print("   2. ⚙️  Process Data - Crazy Dave's special processing")
-        print("   3. 💾 Save to Airtable - Stores results")
-        print("   4. 📤 Respond to Webhook - Sends response back")
+        print("   1. ▶️  When clicking 'Execute workflow' - Manual trigger")
+        print("   2. ⚙️  Crazy Dave's Processor - Generates random crazy data")
+        print("   3. 🤖 Analyze with AI - OpenAI analyzes the output")
         
         print("\n" + "=" * 50)
         print("🎉 Crazy Dave's Workflow is ready!")
